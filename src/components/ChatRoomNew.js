@@ -50,7 +50,7 @@ const ChatRoomNew = ({currentUserId, messages, sendMessage}) =>
                 <a href="" id="closeMsg" className="nav-link d-md-none"><i className="ri-close-fill"></i></a>
             </nav>
         </div>
-        <MessageContainerNew messages={messages} />
+        <MessageContainerNew currentUserId={currentUserId} messages={messages} />
         <SendMessageFormNew sendMessage={sendMessage} currentUserId={currentUserId}/>
     </div>
 

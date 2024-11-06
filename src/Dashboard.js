@@ -2,30 +2,25 @@ import {Col, Container, Row} from 'react-bootstrap';
 import WaitingRoom from './components/waitingroom';
 import ChatRoom from './components/ChatRoom';
 import NewChatModal from './components/NewChatModal';
-import {useState} from 'react';
+import React, {useState} from 'react';
 import {HubConnectionBuilder, LogLevel} from '@microsoft/signalr';
 import ChatRoomNew from './components/ChatRoomNew';
 import {toast} from 'react-toastify';
+import ListChatRoom from './components/ListChatRoom';
 
-function Dashboard() {
-    const [showChatUserModal, setShowChatModal] = useState(false);
-    const [conn, setConnection] = useState();
-    const [messages, setMessages] = useState([]);
-    const [currentUserId, setCurrentUserId] = useState('');
+class Dashboard extends React.Component {
+    constructor(props) {
+        super(props);
 
-    const joinChatRoom = async (chatRoomId) => {
-        await fetch("http://localhost:5274/User/GetCurrentUser", {
-            headers: {Authorization: 'Bearer ' + localStorage.getItem('token')}
-        }).then(response => {
-            if(response.ok) {
-                return response.json();
-            }
-            throw new Error("Login failed!");
-        }).then(async result => {
-            setCurrentUserId(result.id);
+        // Initializing the state
+        this.state = {
+            showNewChatModal: false,
+            conn: null,
+            messages: [],
+            currentUserId: ''
+        };
 
-            console.log(result.id)
-            console.log(currentUserId)
+        this.joinChatRoom = async (chatRoomId) => {
             try {
                 // Initiate a connection
                 const conn = new HubConnectionBuilder()
@@ -38,48 +33,71 @@ function Dashboard() {
                     .build();
                 // Set up handler
                 conn.on("CreateNewChat", (userId, msg) => {
-                    setMessages(messages => [...messages, {userId, msg}])
+                    this.setState({ messages: [...this.state.messages, {userId, msg}] })
                     console.log("msg: ", msg);
                 });
 
                 conn.on("JoinSpecificChatRoom", (userId, msg) => {
-                    setMessages(messages => [...messages, {userId, msg}])
+                    // this.setState({ messages: [...this.state.messages, {userId, msg}] })
                     console.log("msg: ", msg);
                 });
 
                 conn.on("ReceiveMessage", (userId, msg) => {
-                    setMessages(messages => [...messages, {userId, msg}])
+                    this.setState({ messages: [...this.state.messages, {userId, msg}] })
+
+                    const notification = new Notification("SchoolChat", { body: msg.message.message, icon: '/assets/img/img7.png' });
                     console.log("msg: ", msg);
                 });
 
                 await conn.start();
-                await conn.invoke("JoinSpecificChatRoom", {chatRoomId, userId: result.id});
+                await conn.invoke("JoinSpecificChatRoom", {chatRoomId, userId: this.state.currentUserId});
 
-                setConnection(conn);
+                this.setState({
+                    conn: conn,
+                    chatRoomSelectedId: chatRoomId
+                })
             } catch (e) {
                 console.log(e)
             }
+        };
+
+        this.sendMessage = async (message) => {
+            try {
+                await this.state.conn.invoke("SendMessage", message);
+            } catch (e) {
+                toast.error("Gửi tin nhắn thất bại");
+                console.log(e)
+            }
+        };
+    }
+
+    componentDidMount() {
+        Notification.requestPermission().then((result) => {
+            console.log(result);
+        });
+
+        fetch("http://localhost:5274/User/GetCurrentUser", {
+            headers: {Authorization: 'Bearer ' + localStorage.getItem('token')}
+        }).then(response => {
+            if(response.ok) {
+                return response.json();
+            }
+            throw new Error("Xác thực thất bại!");
+        }).then(result => {
+            this.setState({
+                currentUserId: result.id
+            })
+            console.log("Laasy duowc r ", result.id)
         })
-            .catch(exception => {
-                toast.error(exception);
-            });
-
-
-
+        .catch(exception => {
+            toast.error(exception);
+        });
     }
 
-    const sendMessage = async(message) => {
-        try {
-            await conn.invoke("SendMessage", message);
-        } catch (e) {
-            toast.error("Gửi tin nhắn thất bại");
-            console.log(e)
-        }
-    }
-
-    return (
-        <body className="page-app">
-            <NewChatModal show={showChatUserModal} handleClose={() => setShowChatModal(false)} joinChatRoom={joinChatRoom} />
+    render() {
+        return (
+            <body className="page-app">
+            <NewChatModal show={this.state.showNewChatModal} handleClose={() => this.setState({showNewChatModal: false})} joinChatRoom={this.joinChatRoom} />
             <div className="main main-app p-3 p-lg-4" style={{width: '100%', height: '100%', margin: 0}}>
                 <div className="chat-panel">
                     <div className="chat-sidebar">
@@ -95,7 +113,7 @@ function Dashboard() {
                                     <a href="" className="dropdown-item"><i className="ri-lock-2-line"></i> Privacy Settings</a>
                                 </div>
                             </div>
-                            <span role="button" className="header-link ms-1 pointer-event" data-bs-toggle="tooltip" title="New message" onClick={() => setShowChatModal(true)}><i className="ri-chat-new-line"></i></span>
+                            <span role="button" className="header-link ms-1 pointer-event" data-bs-toggle="tooltip" title="New message" onClick={() => this.setState({showNewChatModal: true})}><i className="ri-chat-new-line"></i></span>
                         </div>
                         <div id="chatSidebarBody" className="sidebar-body">
                             <label className="sidebar-label mb-3">Recently Contacted</label>
@@ -113,6 +131,7 @@ function Dashboard() {
                             <label className="sidebar-label mb-2">Direct Messages</label>
 
                             <div className="chat-group">
+                                <ListChatRoom joinChatRoom={this.joinChatRoom} chatRoomSelectedId={this.state.chatRoomSelectedId} />
                                 <div className="chat-item unread">
                                     <div className="avatar offline"><img src="../assets/img/img11.jpg" alt=""/></div>
                                     <div className="chat-item-body">
@@ -120,7 +139,7 @@ function Dashboard() {
                                         <span>Hi Hello! My name is Dyanne Aceron. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.</span>
                                     </div>
                                 </div>
-                                <div className="chat-item selected">
+                                <div className="chat-item">
                                     <div className="avatar online"><img src="../assets/img/img14.jpg" alt=""/></div>
                                     <div className="chat-item-body">
                                         <div className="d-flex align-items-center mb-1"><h6 className="mb-0">Leo Mendez</h6><small className="ms-auto">1d</small></div>
@@ -186,11 +205,13 @@ function Dashboard() {
                             </div>
                         </div>
                     </div>
-                    <ChatRoomNew currentUserId={currentUserId} messages={messages} sendMessage={sendMessage}/>
+                    <ChatRoomNew currentUserId={this.state.currentUserId} messages={this.state.messages} sendMessage={this.sendMessage}/>
                 </div>
             </div>
-        </body>
-);
+            </body>
+        );
+    }
+
 }
 
 export default Dashboard;

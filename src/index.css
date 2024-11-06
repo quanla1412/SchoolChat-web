@@ -16773,6 +16773,7 @@ textarea.form-control-lg {
   padding: 15px;
   position: relative;
   overflow: auto;
+  scroll-behavior: smooth;
 }
 .chat-body-content .nav-icon {
   display: none;
