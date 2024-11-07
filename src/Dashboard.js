@@ -42,11 +42,11 @@ class Dashboard extends React.Component {
                     console.log("msg: ", msg);
                 });
 
-                conn.on("ReceiveMessage", (userId, msg) => {
-                    this.setState({ messages: [...this.state.messages, {userId, msg}] })
+                conn.on("ReceiveMessage", (message) => {
+                    this.setState({ messages: [...this.state.messages, message] })
 
-                    const notification = new Notification("SchoolChat", { body: msg.message.message, icon: '/assets/img/img7.png' });
-                    console.log("msg: ", msg);
+                    // const notification = new Notification("SchoolChat", { body: msg.message.message, icon: '/assets/img/img7.png' });
+                    console.log("msg: ", message);
                 });
 
                 await conn.start();
@@ -56,6 +56,7 @@ class Dashboard extends React.Component {
                     conn: conn,
                     chatRoomSelectedId: chatRoomId
                 })
+                this.fetchMessages(chatRoomId);
             } catch (e) {
                 console.log(e)
             }
@@ -69,6 +70,25 @@ class Dashboard extends React.Component {
                 console.log(e)
             }
         };
+
+        this.fetchMessages = (chatRoomId) => {
+            fetch("http://localhost:5274/Message/GetMessagesByChatRoomId?chatRoomId=" + chatRoomId, {
+                headers: {Authorization: 'Bearer ' + localStorage.getItem('token')}
+            }).then(response => {
+                if(response.ok) {
+                    return response.json();
+                }
+                throw new Error("Lấy dữ liệu thất bại!");
+            }).then(result => {
+                this.setState({
+                    messages: result
+                })
+                console.log('ok nha', result)
+            })
+            .catch(exception => {
+                toast.error(exception);
+            });
+        }
     }
 
     componentDidMount() {

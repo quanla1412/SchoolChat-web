@@ -1,19 +1,21 @@
-import {Col, Row} from 'react-bootstrap';
-import MessageContainer from "./MessageContainer";
-import SendMessageForm from './SendMessageForm';
 import {toast} from 'react-toastify';
-import React, {Fragment, useState} from 'react';
+import React, {Fragment} from 'react';
 
 const ChatRoomItem = ({chatRoom, joinChatRoom, chatRoomSelectedId}) => {
     const user = chatRoom.users[0];
 
-    return <div className={'chat-item' + (chatRoomSelectedId ? ' selected' : '')} onClick={() => joinChatRoom(chatRoom.id)}>
+    const sentDate = chatRoom.newestMessage ? new Date(chatRoom.newestMessage.sentDate)
+        .toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+        .toLowerCase()
+        .replace(' ','') : '';
+
+    return <div className={'chat-item' + (chatRoomSelectedId == chatRoom.id? ' selected' : '')} onClick={() => joinChatRoom(chatRoom.id)}>
         <div className="avatar offline"><img src="/assets/img/img7.jpg" alt=""/></div>
         <div className="chat-item-body">
             <div className="d-flex align-items-center mb-1"><h6 className="mb-0">{user.userName}</h6>
-                <small className="ms-auto">1w</small>
+                <small className="ms-auto">{sentDate}</small>
             </div>
-            <span>It is a long established fact that aquis autem vel eum iure reprehenderit qui in ea voluptate velit esse</span>
+            <span>{chatRoom.newestMessage?.text}</span>
         </div>
     </div>
 }

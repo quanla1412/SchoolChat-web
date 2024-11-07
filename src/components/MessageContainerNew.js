@@ -1,9 +1,9 @@
 import React from 'react';
 
 const MessageItem = ({currentUserId, message}) => {
-    const isMyMessage = currentUserId === message.userId;
+    const isMyMessage = currentUserId === message.fromUserId;
 
-    const sendTime = new Date(message.msg.time)
+    const sentDate = new Date(message.sentDate)
         .toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
         .toLowerCase()
         .replace(' ','');
@@ -14,8 +14,8 @@ const MessageItem = ({currentUserId, message}) => {
             <div className="row gx-3 row-cols-auto">
                 <div className="col">
                     <div className="msg-bubble">
-                        {message.msg.message}
-                        <span>{sendTime}</span>
+                        {message.text}
+                        <span>{sentDate}</span>
                     </div>
                 </div>
                 <div className="col">
