@@ -1,5 +1,5 @@
 import {Button, Form, ListGroup, Modal} from 'react-bootstrap';
-import React, {useState} from 'react';
+import React from 'react';
 import {toast} from 'react-toastify';
 
 class NewChatModal extends React.Component {
@@ -34,7 +34,7 @@ class NewChatModal extends React.Component {
                     Authorization: 'Bearer ' + localStorage.getItem('token')
                 },
                 body: JSON.stringify({
-                    toUserId: toUserId,
+                    toUserIds: [toUserId],
                 }),
             }).then(response => {
                 if(response.ok) {

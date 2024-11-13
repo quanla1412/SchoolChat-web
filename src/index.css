@@ -11997,12 +11997,20 @@ textarea.form-control-lg {
   display: block;
   position: relative;
 }
-.avatar img {
+.avatar img, .mini-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   border-radius: inherit;
   display: block;
+}
+.mini-avatar {
+  width: 16px;
+  height: 16px;
+  border-radius: 100%;
+  display: block;
+  position: relative;
+  margin-top: 2px;
 }
 .avatar.online::after, .avatar.offline::after {
   content: "";

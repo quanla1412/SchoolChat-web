@@ -1,6 +1,6 @@
 import React from 'react';
 
-const MessageItem = ({currentUserId, message}) => {
+const MessageItem = ({currentUserId, message, isReadMessage}) => {
     const isMyMessage = currentUserId === message.fromUserId;
 
     const sentDate = new Date(message.sentDate)
@@ -8,8 +8,8 @@ const MessageItem = ({currentUserId, message}) => {
         .toLowerCase()
         .replace(' ','');
 
-    return <div className={"msg-item" + (isMyMessage ? " reverse" : '')}>
-        { !isMyMessage ? <div className="avatar online"><img src="../assets/img/img16.jpg" alt=""/></div> : null }
+    return <div className={'msg-item' + (isMyMessage ? ' reverse' : '')}>
+        {!isMyMessage ? <div className="avatar online"><img src="/assets/img/img7.jpg" alt=""/></div> : null}
         <div className="msg-body">
             <div className="row gx-3 row-cols-auto">
                 <div className="col">
@@ -25,6 +25,7 @@ const MessageItem = ({currentUserId, message}) => {
                     </nav>
                 </div>
             </div>
+            {isReadMessage ? <div className="mini-avatar"><img src="/assets/img/img7.jpg" alt=""/></div> : null}
         </div>
     </div>
 }
@@ -37,11 +38,12 @@ class MessageContainerNew extends React.Component {
     componentDidUpdate(prevProps, prevState, snapshot) {
         var chatBodyContent = document.getElementById("chatBodyContent");
         chatBodyContent.scrollTop = chatBodyContent.scrollHeight;
+        console.log(this.props.newestReadMessageId)
     }
 
     render() {
         return <div id="chatBodyContent" className="chat-body-content">
-            {this.props.messages.map(message => <MessageItem currentUserId={this.props.currentUserId} message={message}/>)}
+            {this.props.messages.map(message => <MessageItem currentUserId={this.props.currentUserId} message={message} isReadMessage={this.props.newestReadMessageId === message.id}/>)}
         </div>
     }
 

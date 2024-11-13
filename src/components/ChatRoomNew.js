@@ -27,7 +27,7 @@ const ChatBodyHeader = () =>
         </nav>
     </div>
 
-const ChatRoomNew = ({currentUserId, messages, sendMessage}) =>
+const ChatRoomNew = ({currentUserId, messages, sendMessage, newestReadMessageId}) =>
     <div className="chat-body">
         <div className="chat-body-header">
             <div className="chat-item">
@@ -50,7 +50,7 @@ const ChatRoomNew = ({currentUserId, messages, sendMessage}) =>
                 <a href="" id="closeMsg" className="nav-link d-md-none"><i className="ri-close-fill"></i></a>
             </nav>
         </div>
-        <MessageContainerNew currentUserId={currentUserId} messages={messages} />
+        <MessageContainerNew currentUserId={currentUserId} messages={messages} newestReadMessageId={newestReadMessageId}/>
         <SendMessageFormNew sendMessage={sendMessage} currentUserId={currentUserId}/>
     </div>
 
