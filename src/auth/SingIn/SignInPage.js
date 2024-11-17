@@ -29,18 +29,6 @@ const SignInPage = () => {
             toast.success("Login successfully!");
             navigate("/");
         });
-
-
-
-        fetch('http://localhost:5274/WeatherForecast?', {
-            credentials: "include",
-        }).then(response => {
-            if(response.ok) {
-                return response.json();
-            }
-            throw new Error("Login failed!");
-        }).then(result => console.log(result))
-            .catch(exception => console.log(exception));
     }
 
     return <body className="page-sign">

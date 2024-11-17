@@ -1,13 +1,11 @@
-import {Col, Container, Row} from 'react-bootstrap';
-import WaitingRoom from './components/waitingroom';
-import ChatRoom from './components/ChatRoom';
 import NewChatModal from './components/NewChatModal';
-import React, {useState} from 'react';
+import React from 'react';
 import {HubConnectionBuilder, LogLevel} from '@microsoft/signalr';
 import ChatRoomNew from './components/ChatRoomNew';
 import {toast} from 'react-toastify';
 import ListChatRoom from './components/ListChatRoom';
 import CreateGroupChatModal from './components/CreateGroupChatModal';
+import SidebarFooter from './components/SidebarFooter';
 
 class Dashboard extends React.Component {
     constructor(props) {
@@ -19,9 +17,10 @@ class Dashboard extends React.Component {
             showCreateGroupChatModal: false,
             conn: null,
             messages: [],
-            currentUserId: '',
+            currentUser: '',
             newestReadMessageId: '',
             chatRooms: [],
+            showSidebarFooter: false
         };
 
         this.joinChatRoom = async (chatRoomId) => {
@@ -49,7 +48,7 @@ class Dashboard extends React.Component {
                 conn.on("ReceiveMessage", (message) => {
                     this.setState({ messages: [...this.state.messages, message] })
 
-                    if(this.state.currentUserId !== message.fromUserId) {
+                    if(this.state.currentUser.id !== message.fromUserId) {
                         this.markReadMessage(message.id)
                     }
 
@@ -60,7 +59,7 @@ class Dashboard extends React.Component {
                 });
 
                 await conn.start();
-                await conn.invoke("JoinSpecificChatRoom", {chatRoomId, userId: this.state.currentUserId});
+                await conn.invoke("JoinSpecificChatRoom", {chatRoomId, userId: this.state.currentUser.id});
 
                 this.setState({
                     conn: conn,
@@ -94,7 +93,7 @@ class Dashboard extends React.Component {
                 let resultNewestReadMessageId = '';
                 for(let i = result.length - 1; i >= 0; i--) {
                     const message = result[i];
-                    message.readStatuses = message.readStatuses.filter(readStatus => readStatus.userId !== this.state.currentUserId);
+                    message.readStatuses = message.readStatuses.filter(readStatus => readStatus.userId !== this.state.currentUser.id);
                     console.log(message.readStatuses)
                     if(!!message.readStatuses && message.readStatuses.length !== 0) {
                         resultNewestReadMessageId = message.id;
@@ -165,9 +164,8 @@ class Dashboard extends React.Component {
             throw new Error("Xác thực thất bại!");
         }).then(result => {
             this.setState({
-                currentUserId: result.id
+                currentUser: result
             })
-            console.log("Laasy duowc r ", result.id)
         })
         .catch(exception => {
             toast.error(exception);
@@ -183,7 +181,7 @@ class Dashboard extends React.Component {
             <CreateGroupChatModal show={this.state.showCreateGroupChatModal} handleClose={() => this.setState({showCreateGroupChatModal: false})} joinChatRoom={this.joinChatRoom} />
             <div className="main main-app p-3 p-lg-4" style={{width: '100%', height: '100%', margin: 0}}>
                 <div className="chat-panel">
-                    <div className="chat-sidebar">
+                    <div className={"chat-sidebar" + (this.state.showSidebarFooter ? " footer-menu-show" : "")} >
                         <div className="sidebar-header">
                             <h6 className="sidebar-title me-auto">Chat Messages</h6>
                             <div className="dropdown">
@@ -225,11 +223,12 @@ class Dashboard extends React.Component {
                             <label className="sidebar-label mb-2">Direct Messages</label>
 
                             <div className="chat-group">
-                                <ListChatRoom joinChatRoom={this.joinChatRoom} chatRoomSelectedId={this.state.chatRoomSelectedId} chatRooms={this.state.chatRooms} currentUserId={this.state.currentUserId}/>
+                                <ListChatRoom joinChatRoom={this.joinChatRoom} chatRoomSelectedId={this.state.chatRoomSelectedId} chatRooms={this.state.chatRooms} currentUserId={this.state.currentUser.id}/>
                             </div>
                         </div>
+                        <SidebarFooter user={this.state.currentUser} toggleSidebarFooter={() => this.setState({showSidebarFooter: !this.state.showSidebarFooter})}/>
                     </div>
-                    <ChatRoomNew currentUserId={this.state.currentUserId} messages={this.state.messages} sendMessage={this.sendMessage} newestReadMessageId={this.state.newestReadMessageId}/>
+                    <ChatRoomNew currentUserId={this.state.currentUser.id} messages={this.state.messages} sendMessage={this.sendMessage} newestReadMessageId={this.state.newestReadMessageId}/>
                 </div>
             </div>
             </body>

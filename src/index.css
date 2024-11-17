@@ -13558,11 +13558,13 @@ textarea.form-control-lg {
     transition: none;
   }
 }
-.sidebar.footer-menu-show::before {
+.sidebar.footer-menu-show::before,
+.chat-sidebar.footer-menu-show::before{
   visibility: visible;
   opacity: 1;
 }
-.sidebar.footer-menu-show .sidebar-footer {
+.sidebar.footer-menu-show .sidebar-footer,
+.chat-sidebar.footer-menu-show .sidebar-footer {
   bottom: 0;
 }
 
@@ -16556,6 +16558,7 @@ textarea.form-control-lg {
   border-bottom-left-radius: inherit;
   border-top-left-radius: inherit;
   background-color: #fbfcfe;
+  overflow: hidden;
 }
 @media (min-width: 768px) {
   .chat-sidebar {

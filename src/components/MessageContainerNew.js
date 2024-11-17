@@ -19,10 +19,7 @@ const MessageItem = ({currentUserId, message, isReadMessage}) => {
                     </div>
                 </div>
                 <div className="col">
-                    <nav className="nav nav-icon">
-                        <a href="" className="nav-link"><i className="ri-reply-line"></i></a>
-                        <a href="" className="nav-link"><i className="ri-more-fill"></i></a>
-                    </nav>
+                    <span role="button" className="nav-link"><i className="ri-more-fill"></i></span>
                 </div>
             </div>
             {isReadMessage ? <div className="mini-avatar"><img src="/assets/img/img7.jpg" alt=""/></div> : null}
