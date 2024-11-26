@@ -6,6 +6,7 @@ import {toast} from 'react-toastify';
 import ListChatRoom from './components/ListChatRoom';
 import CreateGroupChatModal from './components/CreateGroupChatModal';
 import SidebarFooter from './components/SidebarFooter';
+import axios from 'axios';
 
 class Dashboard extends React.Component {
     constructor(props) {
@@ -20,7 +21,8 @@ class Dashboard extends React.Component {
             currentUser: '',
             newestReadMessageId: '',
             chatRooms: [],
-            showSidebarFooter: false
+            showSidebarFooter: false,
+            selectedChatRoom: {}
         };
 
         this.joinChatRoom = async (chatRoomId) => {
@@ -58,6 +60,10 @@ class Dashboard extends React.Component {
                     console.log("msg: ", message);
                 });
 
+                conn.on("NewPinnedMessage", (pinnedMessage) => {
+                    this.setState({selectedChatRoom: {...this.state.selectedChatRoom, pinnedMessage }})
+                });
+
                 await conn.start();
                 await conn.invoke("JoinSpecificChatRoom", {chatRoomId, userId: this.state.currentUser.id});
 
@@ -67,6 +73,7 @@ class Dashboard extends React.Component {
                 })
                 this.fetchMessages(chatRoomId);
                 this.fetchChatRooms();
+                this.fetchDetailChatRoom(chatRoomId);
             } catch (e) {
                 console.log(e)
             }
@@ -145,8 +152,14 @@ class Dashboard extends React.Component {
             .catch(exception => toast(exception));
         }
 
-        this.updateChatRoomNewMessage = (message) => {
-            const chatRoom = this.state.cha
+        this.fetchDetailChatRoom = (chatRoomId) => {
+            //Get chatroom detail
+            axios.get(
+                'http://localhost:5274/ChatRoom/Detail?id=' + chatRoomId, {
+                    headers: {Authorization: 'Bearer ' + localStorage.getItem('token')}
+                }
+            ).then(data => this.setState({selectedChatRoom: data.data}))
+                .catch(error => console.log(error));
         }
     }
 
@@ -228,7 +241,15 @@ class Dashboard extends React.Component {
                         </div>
                         <SidebarFooter user={this.state.currentUser} toggleSidebarFooter={() => this.setState({showSidebarFooter: !this.state.showSidebarFooter})}/>
                     </div>
-                    <ChatRoomNew currentUserId={this.state.currentUser.id} messages={this.state.messages} sendMessage={this.sendMessage} newestReadMessageId={this.state.newestReadMessageId}/>
+                    <ChatRoomNew
+                        currentUserId={this.state.currentUser.id}
+                        messages={this.state.messages}
+                        sendMessage={this.sendMessage}
+                        newestReadMessageId={this.state.newestReadMessageId}
+                        chatRoomId={this.state.selectedChatRoom.id}
+                        chatRoom = {this.state.selectedChatRoom}
+                        connection = {this.state.conn}
+                    />
                 </div>
             </div>
             </body>

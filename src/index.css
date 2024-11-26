@@ -12099,6 +12099,13 @@ textarea.form-control-lg {
   bottom: 2px;
 }
 
+.avatar-update-profile {
+    width: 120px;
+    height: 120px;
+    position: relative;
+    border-radius: 100%;
+}
+
 .badge {
   font-weight: 400;
   font-size: 11px;
@@ -16791,6 +16798,9 @@ textarea.form-control-lg {
 }
 .chat-body-content .divider:first-child {
   margin-top: 0;
+}
+.chat-body-content.show-pinned-message {
+  height: calc(100% - 168px);
 }
 
 .msg-box {

@@ -7,7 +7,8 @@ class UpdateProfile extends React.Component {
         super(props);
 
         this.state = {
-            user: {}
+            user: {},
+            previewAvatar: ''
         }
 
         this.save = () => {
@@ -30,6 +31,32 @@ class UpdateProfile extends React.Component {
                 } else {
                     toast.error("Cập nhật thông tin thất bại")
                 }
+            });
+        }
+
+        this.uploadAvatar = () => {
+            const input = document.getElementById('upload-avatar-update-profile');
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+
+            fetch('http://localhost:5274/User/UploadAvatar', {
+                method: 'POST',
+                headers: {
+                    Authorization: 'Bearer ' + localStorage.getItem('token')
+                },
+                body: formData,
+            }).then(response => {
+                if(response.ok) {
+                    toast.success("Lưu ảnh đại diện thành công");
+                    return response.json();
+                } else {
+                    toast.error("Cập nhật thông tin thất bại")
+                }
+            }).then(result => {
+                this.setState({
+                    previewAvatar: 'http://localhost:5274/Images/' + result.fileName
+                })
             });
         }
     }
@@ -57,7 +84,6 @@ class UpdateProfile extends React.Component {
     render() {
         return <div className="main p-4 p-lg-5 m-0">
             <h2 className="main-title">Cập nhật thông tin</h2>
-
             <div className="card card-settings">
                 <div className="card-header">
                     <h5 className="card-title">Thông tin cá nhân</h5>
@@ -66,11 +92,29 @@ class UpdateProfile extends React.Component {
                     <div className="setting-item">
                         <div className="row g-2 align-items-center">
                             <div className="col-md-5">
+                                <h6>Ảnh đại diện</h6>
+                            </div>
+                            <div className="col-md">
+                                <div className='d-flex flex-column'>
+                                    <img className="avatar-update-profile" src="/assets/img/default-avatar.jpg" alt="avatar"/>
+                                    <input id="upload-avatar-update-profile" className="form-control mt-2" type="file" onChange={this.uploadAvatar}/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="setting-item">
+                    <div className="row g-2 align-items-center">
+                            <div className="col-md-5">
                                 <h6>Họ và tên</h6>
                                 <p>Tên hiển thị</p>
                             </div>
                             <div className="col-md">
-                                <Form.Control value={this.state.user.name} onChange={(e) => this.setState({user: {...this.state.user, name: e.target.value}})} placeholder="Nhập họ tên của bạn..."/>
+                                <Form.Control value={this.state.user.name} onChange={(e) => this.setState({
+                                    user: {
+                                        ...this.state.user,
+                                        name: e.target.value
+                                    }
+                                })} placeholder="Nhập họ tên của bạn..."/>
                             </div>
                         </div>
                     </div>
@@ -80,7 +124,13 @@ class UpdateProfile extends React.Component {
                                 <h6>Sinh nhật</h6>
                             </div>
                             <div className="col-md">
-                                <input type="date" className="form-control" value={this.state.user.birthday} onChange={(e) => this.setState({user: {...this.state.user, birthday: e.target.value}})}/>
+                                <input type="date" className="form-control" value={this.state.user.birthday}
+                                       onChange={(e) => this.setState({
+                                           user: {
+                                               ...this.state.user,
+                                               birthday: e.target.value
+                                           }
+                                       })}/>
                             </div>
                         </div>
                     </div>
@@ -129,14 +179,20 @@ class UpdateProfile extends React.Component {
                                 <h6>Số điện thoại</h6>
                             </div>
                             <div className="col-md">
-                                <Form.Control placeholder="Nhập số điện thoại của bạn..."  value={this.state.user.phone}
-                                              onChange={(e) => this.setState({user: {...this.state.user, phone: e.target.value}})}/>
+                                <Form.Control placeholder="Nhập số điện thoại của bạn..." value={this.state.user.phone}
+                                              onChange={(e) => this.setState({
+                                                  user: {
+                                                      ...this.state.user,
+                                                      phone: e.target.value
+                                                  }
+                                              })}/>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div>
-                    <Button variant="primary" className="float-end" style={{margin: '0px 20px 20px 20px'}} onClick={this.save}>Lưu</Button>
+                    <Button variant="primary" className="float-end" style={{margin: '0px 20px 20px 20px'}}
+                            onClick={this.save}>Lưu</Button>
                 </div>
             </div>
         </div>
