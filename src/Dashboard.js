@@ -61,7 +61,23 @@ class Dashboard extends React.Component {
                 });
 
                 conn.on("NewPinnedMessage", (pinnedMessage) => {
-                    this.setState({selectedChatRoom: {...this.state.selectedChatRoom, pinnedMessage }})
+                    this.setState({selectedChatRoom: {...this.state.selectedChatRoom, pinnedMessage }});
+                });
+
+                conn.on("UnpinMessage", () => {
+                    this.setState({selectedChatRoom: {...this.state.selectedChatRoom, pinnedMessage: null }});
+                });
+
+                conn.on("UnsentMessage", (messageId) => {
+                    const unsentMessage = this.state.messages.find(message => message.id === messageId);
+                    unsentMessage.isUnsent = true;
+                    unsentMessage.text = "Tin nhắn đã được thu hồi";
+                    this.setState({messages: [...this.state.messages]});
+                });
+
+
+                conn.on("DeleteMessage", (messageId) => {
+                    this.setState({messages: [...this.state.messages.filter(message => message.id !== messageId)]});
                 });
 
                 await conn.start();

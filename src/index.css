@@ -16854,6 +16854,13 @@ textarea.form-control-lg {
 .msg-item.reverse .msg-bubble span {
   color: rgba(255, 255, 255, 0.6);
 }
+.msg-bubble.msg-unsent {
+  background-color: #f3f5f9 !important;
+  color: #9ea7b1 !important;
+}
+.msg-item.reverse .msg-bubble.msg-unsent span {
+  color: #9ea7b1 !important;
+}
 .msg-item.reverse + .reverse {
   margin-top: 5px;
 }
