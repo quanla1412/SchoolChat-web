@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
-import {Button, Dropdown, Form, ListGroup, Modal} from 'react-bootstrap';
-import axios from 'axios';
+import {Button, Dropdown, Form, Modal} from 'react-bootstrap';
 import {toast} from 'react-toastify';
+import ForwardMessageModal from './ForwardMessageModal';
 
 const UnsentConfirmModal = ({show, handleClose, unsentMessage, deleteMessage}) => {
     const [isUnsentMode, setIsUnsentMode] = useState(true);
@@ -54,15 +54,20 @@ const UnsentConfirmModal = ({show, handleClose, unsentMessage, deleteMessage}) =
     </Modal>
 }
 
-const MessageItem = ({currentUserId, message, isReadMessage, connection}) => {
+const MessageItem = ({currentUserId, message, isReadMessage, connection, showDate, currentChatRoomId}) => {
     const [showUnsentConfirmModal, setShowUnsentConfirmModal] = useState(false);
+    const [showForwardMessageModal, setShowForwardMessageModal] = useState(false);
 
-    const isMyMessage = currentUserId === message.fromUserId;
+    const isMyMessage = currentUserId === message.fromUser.id;
 
-    const sentDate = new Date(message.sentDate)
+    const sentTime = new Date(message.sentDate)
         .toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
         .toLowerCase()
         .replace(' ','');
+
+    const sentDate = new Date(message.sentDate)
+        .toLocaleString('en-US', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'  })
+        .toLowerCase()
 
     const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
         <a
@@ -114,58 +119,91 @@ const MessageItem = ({currentUserId, message, isReadMessage, connection}) => {
         }
     }
 
-    return <div
-        className={'msg-item' + (isMyMessage ? ' reverse' : '')}
-        onMouseOver={() => document.getElementById('msg-container-item-' + message.id).classList.add('nav-show')}
-        onMouseLeave={() => document.getElementById('msg-container-item-' + message.id).classList.remove('nav-show')}
-    >
-        <UnsentConfirmModal
-            show={showUnsentConfirmModal}
-            handleClose={() => setShowUnsentConfirmModal(false)}
-            unsentMessage={unsentMessage}
-            deleteMessage={deleteMessage}
-        />
-        {!isMyMessage ? <div className="avatar online"><img src="/assets/img/img7.jpg" alt=""/></div> : null}
-        <div className="msg-body">
-            <div id={'msg-container-item-' + message.id} className="row gx-3 row-cols-auto">
-                <div className="col">
-                    <div className={"msg-bubble" + (message.isUnsent ? " msg-unsent" : "")}>
-                        {message.text}
-                        <span>{sentDate}</span>
-                    </div>
-                </div>
+    const forwardMessage = async (selectedChatRoomId) => {
+        try {
+            await connection.invoke("ForwardMessage",
                 {
-                    !message.isUnsent ?  <div className="col">
-                        <nav className="nav nav-icon">
-                            <a href="" className="nav-link"><i className="ri-reply-line"></i></a>
-                            <Dropdown>
-                                <Dropdown.Toggle as={CustomToggle} id="dropdown-basic"/>
+                    messageId: message.id,
+                    chatRoomId: selectedChatRoomId
+                });
+            setShowForwardMessageModal(false);
+        } catch (e) {
+            toast.error("Xóa tin nhắn thất bại");
+        }
+    }
 
-                                <Dropdown.Menu>
-                                    <Dropdown.Item
-                                        onClick={() => pinOrUnpinMessage()}>{message.isPinned ? 'Gỡ ghim' : 'Ghim'}</Dropdown.Item>
-                                    {message.fromUserId === currentUserId ?
-                                        <Dropdown.Item onClick={() => setShowUnsentConfirmModal(true)}>Thu
-                                            hồi</Dropdown.Item> :
-                                        <Dropdown.Item onClick={deleteMessage}>Xóa</Dropdown.Item>
-                                    }
-                                    <Dropdown.Item href="#/action-3">Something else</Dropdown.Item>
-                                </Dropdown.Menu>
-                            </Dropdown>
-                        </nav>
-                    </div> : null
-                }
+    return <React.Fragment>
+        {showDate ? <div className="divider"><span>{sentDate}</span></div> : null}
+        <div
+            className={'msg-item' + (isMyMessage ? ' reverse' : '')}
+            onMouseOver={() => document.getElementById('msg-container-item-' + message.id).classList.add('nav-show')}
+            onMouseLeave={() => document.getElementById('msg-container-item-' + message.id).classList.remove('nav-show')}
+        >
+            <ForwardMessageModal
+                show={showForwardMessageModal}
+                currentChatRoomId={currentChatRoomId}
+                forwardMessage = {forwardMessage}
+                handleClose={() => setShowForwardMessageModal(false)}
+            />
+            <UnsentConfirmModal
+                show={showUnsentConfirmModal}
+                handleClose={() => setShowUnsentConfirmModal(false)}
+                unsentMessage={unsentMessage}
+                deleteMessage={deleteMessage}
+            />
+            {!isMyMessage ? <div className={"avatar online " + (message.isForwarded ? "mt-4" : "")}><img src="/assets/img/img7.jpg" alt=""/></div> : null}
+            <div className="msg-body">
+                {message.isForwarded ?
+                    <p className="fs-11 mb-0"><i className="ri-reply-line"></i> {message.fromUser.id !== currentUserId ? message.fromUser.name : "Bạn"} đã chuyển tiếp một tin nhắn</p> : null}
+                <div id={'msg-container-item-' + message.id} className="row gx-3 row-cols-auto">
+                    <div className="col">
+                        <div className={'msg-bubble' + (message.isUnsent ? ' msg-unsent' : '')}>
+                            {message.text}
+                            <span>{sentTime}</span>
+                        </div>
+                    </div>
+                    {
+                        !message.isUnsent ? <div className="col">
+                            <nav className="nav nav-icon">
+                                <span role="button" className="nav-link"
+                                      onClick={() => setShowForwardMessageModal(true)}><i className="ri-reply-line"></i></span>
+                                <Dropdown>
+                                    <Dropdown.Toggle as={CustomToggle} id="dropdown-basic"/>
+
+                                    <Dropdown.Menu>
+                                        <Dropdown.Item
+                                            onClick={() => pinOrUnpinMessage()}>{message.isPinned ? 'Gỡ ghim' : 'Ghim'}</Dropdown.Item>
+                                        {message.fromUser.id === currentUserId ?
+                                            <Dropdown.Item onClick={() => setShowUnsentConfirmModal(true)}>Thu
+                                                hồi</Dropdown.Item> :
+                                            <Dropdown.Item onClick={deleteMessage}>Xóa</Dropdown.Item>
+                                        }
+                                        <Dropdown.Item href="#/action-3">Something else</Dropdown.Item>
+                                    </Dropdown.Menu>
+                                </Dropdown>
+                            </nav>
+                        </div> : null
+                    }
+                </div>
+                {isReadMessage ? <div className="mini-avatar"><img src="/assets/img/img7.jpg" alt=""/></div> : null}
             </div>
-            {isReadMessage ? <div className="mini-avatar"><img src="/assets/img/img7.jpg" alt=""/></div> : null}
         </div>
-    </div>
+    </React.Fragment>
 }
 
 class MessageContainerNew extends React.Component {
     constructor(props) {
         super(props);
 
-        console.log(this.props.messages)
+        this.showDate = (index) => {
+            if (index === 0)
+                return true;
+
+            const previousDate = new Date(this.props.messages[index - 1].sentDate);
+            const today = new Date(this.props.messages[index].sentDate);
+
+            return previousDate.getDate() !== today.getDate() || previousDate.getMonth() !== today.getMonth() || previousDate.getFullYear() !== today.getFullYear();
+        }
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
@@ -181,11 +219,13 @@ class MessageContainerNew extends React.Component {
 
     render() {
         return <div id="chatBodyContent" className="chat-body-content">
-            {this.props.messages.map(message => <MessageItem
+            {this.props.messages.map((message, index) => <MessageItem
                 currentUserId={this.props.currentUserId}
                 message={message}
                 isReadMessage={this.props.newestReadMessageId === message.id}
-                connection = {this.props.connection}
+                connection={this.props.connection}
+                showDate={this.showDate(index)}
+                currentChatRoomId={this.props.currentChatRoomId}
             />)}
         </div>
     }

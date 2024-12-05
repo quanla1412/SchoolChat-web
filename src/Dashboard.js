@@ -7,10 +7,12 @@ import ListChatRoom from './components/ListChatRoom';
 import CreateGroupChatModal from './components/CreateGroupChatModal';
 import SidebarFooter from './components/SidebarFooter';
 import axios from 'axios';
+import AppCalendar from './components/AppCalendar';
 
 class Dashboard extends React.Component {
     constructor(props) {
         super(props);
+
 
         // Initializing the state
         this.state = {
@@ -22,7 +24,8 @@ class Dashboard extends React.Component {
             newestReadMessageId: '',
             chatRooms: [],
             showSidebarFooter: false,
-            selectedChatRoom: {}
+            selectedChatRoom: {},
+            showCalendar: false
         };
 
         this.joinChatRoom = async (chatRoomId) => {
@@ -50,7 +53,7 @@ class Dashboard extends React.Component {
                 conn.on("ReceiveMessage", (message) => {
                     this.setState({ messages: [...this.state.messages, message] })
 
-                    if(this.state.currentUser.id !== message.fromUserId) {
+                    if(this.state.currentUser.id !== message.fromUser.id) {
                         this.markReadMessage(message.id)
                     }
 
@@ -184,21 +187,16 @@ class Dashboard extends React.Component {
             console.log(result);
         });
 
-        fetch("http://localhost:5274/User/GetCurrentUser", {
-            headers: {Authorization: 'Bearer ' + localStorage.getItem('token')}
-        }).then(response => {
-            if(response.ok) {
-                return response.json();
-            }
-            throw new Error("Xác thực thất bại!");
-        }).then(result => {
-            this.setState({
-                currentUser: result
+        axios.get('http://localhost:5274/User/GetCurrentUser')
+            .then((result) => {
+                this.setState({
+                    currentUser: result.data
+                })
             })
-        })
-        .catch(exception => {
-            toast.error(exception);
-        });
+            .catch(function (error) {
+                console.log(error.toJSON());
+                toast.error("Có lỗi xảy ra!");
+            });
 
         this.fetchChatRooms();
     }
@@ -255,17 +253,23 @@ class Dashboard extends React.Component {
                                 <ListChatRoom joinChatRoom={this.joinChatRoom} chatRoomSelectedId={this.state.chatRoomSelectedId} chatRooms={this.state.chatRooms} currentUserId={this.state.currentUser.id}/>
                             </div>
                         </div>
-                        <SidebarFooter user={this.state.currentUser} toggleSidebarFooter={() => this.setState({showSidebarFooter: !this.state.showSidebarFooter})}/>
+                        <SidebarFooter
+                            user={this.state.currentUser}
+                            toggleSidebarFooter={() => this.setState({showSidebarFooter: !this.state.showSidebarFooter})}
+                            showCalendar = {() => this.setState({showCalendar: true})}
+                        />
                     </div>
-                    <ChatRoomNew
-                        currentUserId={this.state.currentUser.id}
-                        messages={this.state.messages}
-                        sendMessage={this.sendMessage}
-                        newestReadMessageId={this.state.newestReadMessageId}
-                        chatRoomId={this.state.selectedChatRoom.id}
-                        chatRoom = {this.state.selectedChatRoom}
-                        connection = {this.state.conn}
-                    />
+                    { this.state.showCalendar ?
+                        <AppCalendar/> :
+                        <ChatRoomNew
+                            currentUserId={this.state.currentUser.id}
+                            messages={this.state.messages}
+                            sendMessage={this.sendMessage}
+                            newestReadMessageId={this.state.newestReadMessageId}
+                            chatRoom = {this.state.selectedChatRoom}
+                            connection = {this.state.conn}
+                        />
+                    }
                 </div>
             </div>
             </body>

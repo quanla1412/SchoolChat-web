@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SidebarFooter = ({user, toggleSidebarFooter}) => {
+const SidebarFooter = ({user, toggleSidebarFooter, showCalendar}) => {
     return <div className="sidebar-footer">
         <div className="sidebar-footer-top">
             <div className="sidebar-footer-thumb">
@@ -21,7 +21,7 @@ const SidebarFooter = ({user, toggleSidebarFooter}) => {
             </nav>
             <hr/>
             <nav className="nav">
-                <a href=""><i className="ri-question-line"></i> Help Center</a>
+                <span role="button" onClick={showCalendar}><i className="ri-calendar-view"></i> Xem lịch</span>
                 <a href=""><i className="ri-lock-line"></i> Privacy Settings</a>
                 <a href=""><i className="ri-user-settings-line"></i> Account Settings</a>
                 <a href=""><i className="ri-logout-box-r-line"></i> Log Out</a>

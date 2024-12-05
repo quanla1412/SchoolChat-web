@@ -2,12 +2,21 @@ import MessageContainerNew from './MessageContainerNew';
 import SendMessageFormNew from './SendMessageFormNew';
 import PinnedMessageContainer from './PinnedMessageContainer';
 import React from 'react';
-import axios from 'axios';
-import chatRoom from './ChatRoom';
 
 class ChatRoomNew extends React.Component {
     constructor(props) {
         super(props);
+
+        this.getChatRoomName = () => {
+            if(!this.props.chatRoom.id)
+                return null;
+
+            if(this.props.chatRoom.name != null)
+                return this.props.chatRoom.name;
+
+            const otherUsers = this.props.chatRoom.users.filter(user => user.id !== this.props.currentUserId)
+            return otherUsers.map(user => user.name).join(', ');
+        }
     }
 
     render() {
@@ -16,7 +25,7 @@ class ChatRoomNew extends React.Component {
                 <div className="chat-item">
                     <div className="avatar online"><img src="../assets/img/img14.jpg" alt=""/></div>
                     <div className="chat-item-body">
-                        <h6 className="mb-1">Leo Mendez</h6>
+                        <h6 className="mb-1">{this.getChatRoomName()}</h6>
                         <span>Active now</span>
                     </div>
                 </div>
@@ -42,8 +51,13 @@ class ChatRoomNew extends React.Component {
                 newestReadMessageId={this.props.newestReadMessageId}
                 connection = {this.props.connection}
                 showPinnedMessage = {!!this.props.chatRoom.pinnedMessage}
+                currentChatRoomId={this.props.chatRoom.id}
             />
-            <SendMessageFormNew sendMessage={this.props.sendMessage} currentUserId={this.props.currentUserId}/>
+            <SendMessageFormNew
+                sendMessage={this.props.sendMessage}
+                currentUserId={this.props.currentUserId}
+                currentChatRoomId = {this.props.chatRoom.id}
+            />
         </div>
     }
 

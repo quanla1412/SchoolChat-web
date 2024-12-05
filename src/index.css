@@ -13732,7 +13732,8 @@ textarea.form-control-lg {
   flex-direction: column;
   margin: 0;
 }
-.sidebar-footer-menu a {
+.sidebar-footer-menu a,
+.sidebar-footer-menu span{
   height: 35px;
   padding: 0 8px;
   color: #41505f;
@@ -13742,15 +13743,18 @@ textarea.form-control-lg {
   transition: all 0.25s;
 }
 @media (prefers-reduced-motion: reduce) {
-  .sidebar-footer-menu a {
+  .sidebar-footer-menu a,
+  .sidebar-footer-menu span {
     transition: none;
   }
 }
-.sidebar-footer-menu a:hover {
+.sidebar-footer-menu a:hover,
+.sidebar-footer-menu span:hover {
   background-color: #f3f5f9;
   color: #212830;
 }
-.sidebar-footer-menu a > i {
+.sidebar-footer-menu a > i,
+.sidebar-footer-menu span > i{
   line-height: 1;
   font-size: 20px;
   margin-right: 12px;
@@ -17275,6 +17279,9 @@ textarea.form-control-lg {
   left: 0;
   padding: 20px;
   transition: all 0.25s;
+}
+.calendar-body > div {
+  height: 100%;
 }
 @media (prefers-reduced-motion: reduce) {
   .calendar-body {
