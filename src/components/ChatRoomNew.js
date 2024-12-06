@@ -17,16 +17,23 @@ class ChatRoomNew extends React.Component {
             const otherUsers = this.props.chatRoom.users.filter(user => user.id !== this.props.currentUserId)
             return otherUsers.map(user => user.name).join(', ');
         }
+
+        this.isOnlineRoom = () => {
+            if(!this.props.chatRoom.id)
+                return false;
+            const chatRoomUserIds = this.props.chatRoom.users.map(user => user.id);
+            return chatRoomUserIds.some(userId => this.props.onlineUserIds.includes(userId));
+        }
     }
 
     render() {
         return <div className="chat-body">
             <div className="chat-body-header">
                 <div className="chat-item">
-                    <div className="avatar online"><img src="../assets/img/img14.jpg" alt=""/></div>
+                    <div className={"avatar " + (this.isOnlineRoom() ? "online" : "offline")}><img src="../assets/img/img14.jpg" alt=""/></div>
                     <div className="chat-item-body">
                         <h6 className="mb-1">{this.getChatRoomName()}</h6>
-                        <span>Active now</span>
+                        <span>{this.isOnlineRoom() ? "Đang hoạt động" : "Offline"}</span>
                     </div>
                 </div>
                 <nav className="nav nav-icon ms-auto">

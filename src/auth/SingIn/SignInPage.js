@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import {Button, Form} from 'react-bootstrap';
 import {Link, useNavigate} from 'react-router-dom';
-import {toast, ToastContainer} from 'react-toastify';
+import {toast} from 'react-toastify';
 
 const SignInPage = () => {
     const [email, setEmail] = useState('');

@@ -8,11 +8,12 @@ import CreateGroupChatModal from './components/CreateGroupChatModal';
 import SidebarFooter from './components/SidebarFooter';
 import axios from 'axios';
 import AppCalendar from './components/AppCalendar';
+import DashboardMode from './common/DashboardMode';
+import UpdateProfileNew from './components/UpdateProfileNew';
 
 class Dashboard extends React.Component {
     constructor(props) {
         super(props);
-
 
         // Initializing the state
         this.state = {
@@ -25,53 +26,32 @@ class Dashboard extends React.Component {
             chatRooms: [],
             showSidebarFooter: false,
             selectedChatRoom: {},
-            showCalendar: false
+            dashboardMode: DashboardMode.CHATROOM,
+            onlineUserIds: []
         };
 
         this.joinChatRoom = async (chatRoomId) => {
             try {
-                // Initiate a connection
-                const conn = new HubConnectionBuilder()
-                    .withUrl("http://localhost:5274/chat", {
-                        accessTokenFactory() {
-                            return localStorage.getItem('token');
-                        }
-                    })
-                    .configureLogging(LogLevel.Information)
-                    .build();
                 // Set up handler
-                conn.on("CreateNewChat", (userId, msg) => {
+                this.state.conn.on("CreateNewChat", (userId, msg) => {
                     this.setState({ messages: [...this.state.messages, {userId, msg}] })
                     console.log("msg: ", msg);
                 });
 
-                conn.on("JoinSpecificChatRoom", (userId, msg) => {
+                this.state.conn.on("JoinSpecificChatRoom", (userId, msg) => {
                     // this.setState({ messages: [...this.state.messages, {userId, msg}] })
                     console.log("msg: ", msg);
                 });
 
-                conn.on("ReceiveMessage", (message) => {
-                    this.setState({ messages: [...this.state.messages, message] })
-
-                    if(this.state.currentUser.id !== message.fromUser.id) {
-                        this.markReadMessage(message.id)
-                    }
-
-                    this.fetchChatRooms()
-
-                    // const notification = new Notification("SchoolChat", { body: msg.message.message, icon: '/assets/img/img7.png' });
-                    console.log("msg: ", message);
-                });
-
-                conn.on("NewPinnedMessage", (pinnedMessage) => {
+                this.state.conn.on("NewPinnedMessage", (pinnedMessage) => {
                     this.setState({selectedChatRoom: {...this.state.selectedChatRoom, pinnedMessage }});
                 });
 
-                conn.on("UnpinMessage", () => {
+                this.state.conn.on("UnpinMessage", () => {
                     this.setState({selectedChatRoom: {...this.state.selectedChatRoom, pinnedMessage: null }});
                 });
 
-                conn.on("UnsentMessage", (messageId) => {
+                this.state.conn.on("UnsentMessage", (messageId) => {
                     const unsentMessage = this.state.messages.find(message => message.id === messageId);
                     unsentMessage.isUnsent = true;
                     unsentMessage.text = "Tin nhắn đã được thu hồi";
@@ -79,15 +59,13 @@ class Dashboard extends React.Component {
                 });
 
 
-                conn.on("DeleteMessage", (messageId) => {
+                this.state.conn.on("DeleteMessage", (messageId) => {
                     this.setState({messages: [...this.state.messages.filter(message => message.id !== messageId)]});
                 });
 
-                await conn.start();
-                await conn.invoke("JoinSpecificChatRoom", {chatRoomId, userId: this.state.currentUser.id});
+                await this.state.conn.invoke("JoinSpecificChatRoom", chatRoomId);
 
                 this.setState({
-                    conn: conn,
                     chatRoomSelectedId: chatRoomId
                 })
                 this.fetchMessages(chatRoomId);
@@ -148,7 +126,7 @@ class Dashboard extends React.Component {
                 throw new Error("Đọc tin nhắn thất bại!");
             }).then(result => {
                 const readMessage = this.state.messages.find(message => message.id === result.messageId);
-                readMessage.readStatuses = result;
+                readMessage.readStatuses = [result];
                 this.setState({messages: [...this.state.messages]});
                 console.log(this.state.messages)
             })
@@ -180,13 +158,70 @@ class Dashboard extends React.Component {
             ).then(data => this.setState({selectedChatRoom: data.data}))
                 .catch(error => console.log(error));
         }
+
+        this.initialConnectToChatHub = async () => {
+            try {
+                // Initiate a connection
+                const conn = new HubConnectionBuilder()
+                    .withUrl("http://localhost:5274/chat", {
+                        accessTokenFactory() {
+                            return localStorage.getItem('token');
+                        }
+                    })
+                    .configureLogging(LogLevel.Information)
+                    .build();
+
+                conn.on("OnlineUserIds", (userIds) => {
+                    this.setState({onlineUserIds: userIds});
+                });
+
+                conn.on("NewUserOnlineListener", (userId) => {
+                    if(!this.state.onlineUserIds.includes(userId)) {
+                        this.setState({onlineUserIds: [...this.state.onlineUserIds, userId]});
+                        console.log("New User Online Id: ", userId)
+                    }
+                });
+
+                conn.on("NewUserOfflineListener", (userId) => {
+                    this.setState({onlineUserIds: [...this.state.onlineUserIds.filter(onlineUserId => onlineUserId !== userId)]});
+                    console.log("New User Offline Id: ", userId)
+                });
+
+                conn.on("ReceiveMessage", (message) => {
+                    if(this.state.currentUser.id !== message.fromUser.id) {
+                        this.markReadMessage(message.id)
+                    }
+
+                    const receiveChatRoom = this.state.chatRooms.find(chatRoom => chatRoom.id === message.chatRoomId)
+                    receiveChatRoom.newestMessage = message;
+
+                    console.log(this.state.selectedChatRoom)
+
+                    this.setState({
+                        messages: this.state.selectedChatRoom.id != message.chatRoomId ? [...this.state.messages] : [...this.state.messages, message],
+                        chatRooms: [...this.state.chatRooms]
+                    });
+
+                    // const notification = new Notification("SchoolChat", { body: msg.message.message, icon: '/assets/img/img7.png' });
+                });
+
+                await conn.start();
+                await conn.invoke("ConnectToHub", {userId: this.state.currentUser.id});
+                this.setState({conn: conn})
+            } catch (e) {
+                console.log(e)
+            }
+        };
     }
 
     componentDidMount() {
+        this.initialConnectToChatHub();
+
         Notification.requestPermission().then((result) => {
             console.log(result);
         });
 
+        axios.defaults.headers.common['Authorization'] = "Bearer " + localStorage.getItem('token');
         axios.get('http://localhost:5274/User/GetCurrentUser')
             .then((result) => {
                 this.setState({
@@ -199,6 +234,26 @@ class Dashboard extends React.Component {
             });
 
         this.fetchChatRooms();
+    }
+
+    renderDashboard() {
+
+        switch (this.state.dashboardMode) {
+            case DashboardMode.CALENDAR:
+                return <AppCalendar/>
+            case DashboardMode.UPDATE_PROFILE:
+                return <UpdateProfileNew handleClose={() => this.setState({dashboardMode: DashboardMode.CHATROOM})}/>
+            default:
+                return <ChatRoomNew
+                    currentUserId={this.state.currentUser.id}
+                    messages={this.state.messages}
+                    sendMessage={this.sendMessage}
+                    newestReadMessageId={this.state.newestReadMessageId}
+                    chatRoom = {this.state.selectedChatRoom}
+                    connection = {this.state.conn}
+                    onlineUserIds = {this.state.onlineUserIds}
+                />;
+        }
     }
 
     render() {
@@ -250,26 +305,23 @@ class Dashboard extends React.Component {
                             <label className="sidebar-label mb-2">Direct Messages</label>
 
                             <div className="chat-group">
-                                <ListChatRoom joinChatRoom={this.joinChatRoom} chatRoomSelectedId={this.state.chatRoomSelectedId} chatRooms={this.state.chatRooms} currentUserId={this.state.currentUser.id}/>
+                                <ListChatRoom
+                                    joinChatRoom={this.joinChatRoom}
+                                    chatRoomSelectedId={this.state.chatRoomSelectedId}
+                                    chatRooms={this.state.chatRooms}
+                                    currentUserId={this.state.currentUser.id}
+                                    onlineUserIds={this.state.onlineUserIds}
+                                />
                             </div>
                         </div>
                         <SidebarFooter
                             user={this.state.currentUser}
                             toggleSidebarFooter={() => this.setState({showSidebarFooter: !this.state.showSidebarFooter})}
-                            showCalendar = {() => this.setState({showCalendar: true})}
+                            showCalendar = {() => this.setState({dashboardMode: DashboardMode.CALENDAR})}
+                            showUpdateProfile = {() => this.setState({dashboardMode: DashboardMode.UPDATE_PROFILE})}
                         />
                     </div>
-                    { this.state.showCalendar ?
-                        <AppCalendar/> :
-                        <ChatRoomNew
-                            currentUserId={this.state.currentUser.id}
-                            messages={this.state.messages}
-                            sendMessage={this.sendMessage}
-                            newestReadMessageId={this.state.newestReadMessageId}
-                            chatRoom = {this.state.selectedChatRoom}
-                            connection = {this.state.conn}
-                        />
-                    }
+                    {this.renderDashboard()}
                 </div>
             </div>
             </body>

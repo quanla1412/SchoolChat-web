@@ -19,7 +19,7 @@ axios.interceptors.response.use(response => {
     return response;
 }, error => {
     if (error.code === "ERR_NETWORK") {
-        console.log('asdsds')
+        console.log(error)
         window.location.href='/login';
     }
     return error;

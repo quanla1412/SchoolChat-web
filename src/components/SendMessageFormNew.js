@@ -1,6 +1,7 @@
 import React from 'react';
 import {Form} from 'react-bootstrap';
 import CreateEventModal from './CreateEventModal';
+import 'unicode-emoji-picker';
 
 class SendMessageFormNew extends React.Component {
     constructor(props) {
@@ -8,7 +9,8 @@ class SendMessageFormNew extends React.Component {
 
         this.state = {
             message: '',
-            showCreateEventModal: false
+            showCreateEventModal: false,
+            showEmojiPicker: false
         }
 
         this.sendMessageClick = () => {
@@ -26,14 +28,35 @@ class SendMessageFormNew extends React.Component {
         }
     }
 
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if(this.state.showEmojiPicker) {
+            const emojiPicker = document.querySelector('unicode-emoji-picker');
+            emojiPicker.addEventListener('emoji-pick', (event) => {
+                this.setState({message: this.state.message + event.detail.emoji})
+            });
+
+            emojiPicker.addEventListener('focusout', (event) => {
+                this.setState({showEmojiPicker: false})
+            });
+        }
+    }
+
     render() {
         return <React.Fragment>
             <div className="chat-body-footer">
-                <nav className="nav nav-icon">
+                <nav className="nav nav-icon position-relative">
                     <a href="" className="nav-link"><i className="ri-add-line"></i></a>
                     <a href="" className="nav-link"><i className="ri-image-line"></i></a>
                     <span role="button" className="nav-link" onClick={() => this.setState({showCreateEventModal: true})}><i className="ri-calendar-line"></i></span>
-                    <a href="" className="nav-link"><i className="ri-emotion-happy-line"></i></a>
+                    {
+                        this.state.showEmojiPicker ?
+                            <div id="emojiPickerContainer" className="position-absolute" style={{top: -352}}>
+                                <unicode-emoji-picker></unicode-emoji-picker>
+                            </div> : null
+                    }
+                    <span role="button" className="nav-link" style={{marginLeft: 5}} onClick={() => this.setState({showEmojiPicker: !this.state.showEmojiPicker})}>
+                        <i className="ri-emotion-happy-line"></i>
+                    </span>
                 </nav>
                 <div className="msg-box">
                     <Form.Control onChange={e => this.setState({message: e.target.value})} value={this.state.message}

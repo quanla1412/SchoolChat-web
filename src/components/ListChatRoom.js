@@ -1,6 +1,6 @@
 import React, {Fragment} from 'react';
 
-const ChatRoomItem = ({chatRoom, joinChatRoom, chatRoomSelectedId, currentUserId}) => {
+const ChatRoomItem = ({chatRoom, joinChatRoom, chatRoomSelectedId, currentUserId, isOnline}) => {
     const chatRoomName = chatRoom.name ? chatRoom.name : chatRoom.users.map(user => user.userName).join(", ");
 
     const sentDate = chatRoom.newestMessage ? new Date(chatRoom.newestMessage.sentDate)
@@ -16,7 +16,7 @@ const ChatRoomItem = ({chatRoom, joinChatRoom, chatRoomSelectedId, currentUserId
         }
 
     return <div className={'chat-item' + (chatRoomSelectedId === chatRoom.id? ' selected' : '') + (isUnread ? ' unread' : '')} onClick={() => joinChatRoom(chatRoom.id)}>
-        <div className="avatar offline"><img src="/assets/img/img7.jpg" alt=""/></div>
+        <div className={"avatar " + (isOnline ? "online" : "offline")}><img src="/assets/img/img7.jpg" alt=""/></div>
         <div className="chat-item-body">
             <div className="d-flex align-items-center mb-1">
                 <h6 className="mb-0" style={{width: '100%', textOverflow: 'ellipsis', overflow: 'hidden', textWrap: 'nowrap'}}>{chatRoomName}</h6>
@@ -32,6 +32,11 @@ class ListChatRoom extends React.Component {
         super(props);
 
         this.joinChatRoom = props.joinChatRoom;
+
+        this.isOnlineRoom = (chatRoom) => {
+            const chatRoomUserIds = chatRoom.users.map(user => user.id);
+            return chatRoomUserIds.some(userId => this.props.onlineUserIds.includes(userId));
+        }
     }
 
     render() {
@@ -42,6 +47,7 @@ class ListChatRoom extends React.Component {
                               joinChatRoom={this.joinChatRoom}
                               chatRoomSelectedId={this.props.chatRoomSelectedId}
                               currentUserId={this.props.currentUserId}
+                              isOnline={this.isOnlineRoom(chatRoom)}
                 />)}
         </Fragment>
     }

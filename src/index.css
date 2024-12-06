@@ -24781,3 +24781,10 @@ textarea.parsley-success:focus {
 [dir=rtl] .nav-docs .nav-link.active::before {
   right: -15px;
 }
+unicode-emoji-picker {
+    font-size: 18px;
+    --min-emoji-column: 6;
+    --max-emoji-column: 8;
+    --min-emoji-row: 4;
+    --max-emoji-row: 6;
+}
