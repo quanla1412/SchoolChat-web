@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {Button, Dropdown, Form, Modal} from 'react-bootstrap';
 import {toast} from 'react-toastify';
 import ForwardMessageModal from './ForwardMessageModal';
+import MessageType from '../common/MessageType';
 
 const UnsentConfirmModal = ({show, handleClose, unsentMessage, deleteMessage}) => {
     const [isUnsentMode, setIsUnsentMode] = useState(true);
@@ -132,6 +133,14 @@ const MessageItem = ({currentUserId, message, isReadMessage, connection, showDat
         }
     }
 
+    function downloadFile()
+    {
+        var link = document.createElement("a");
+        link.download = message.text;
+        link.href = "http://localhost:5274/Images/Messages/" + message.text;
+        link.click();
+    }
+
     return <React.Fragment>
         {showDate ? <div className="divider"><span>{sentDate}</span></div> : null}
         <div
@@ -151,14 +160,30 @@ const MessageItem = ({currentUserId, message, isReadMessage, connection, showDat
                 unsentMessage={unsentMessage}
                 deleteMessage={deleteMessage}
             />
-            {!isMyMessage ? <div className={"avatar online " + (message.isForwarded ? "mt-4" : "")}><img src="/assets/img/img7.jpg" alt=""/></div> : null}
+            {!isMyMessage ? <div className={"avatar " + (message.isForwarded ? "mt-4" : "")}><img src="/assets/img/default-avatar.jpg" alt=""/></div> : null}
             <div className="msg-body">
                 {message.isForwarded ?
                     <p className="fs-11 mb-0"><i className="ri-reply-line"></i> {message.fromUser.id !== currentUserId ? message.fromUser.name : "Bạn"} đã chuyển tiếp một tin nhắn</p> : null}
                 <div id={'msg-container-item-' + message.id} className="row gx-3 row-cols-auto">
                     <div className="col">
-                        <div className={'msg-bubble' + (message.isUnsent ? ' msg-unsent' : '')}>
-                            {message.text}
+                        <div className={'msg-bubble' + (message.type === MessageType.IMAGE ? " d-flex align-items-center" : "") + (message.isUnsent ? ' msg-unsent' : '')}>
+                            {
+                                message.type === MessageType.FILE ?
+                                    <div className="p-2 rounded d-flex" >
+                                        <span role="button" onClick={downloadFile}>
+                                            <i className="ri-file-download-line fs-18 me-2" style={{color: 'black'}}></i>
+                                            {message.text}
+                                        </span>
+                                    </div> :
+                                    null
+                            }
+                            {message.type === MessageType.IMAGE ?
+                                <img src={'http://localhost:5274/Images/Messages/' + message.text} alt="Message image" style={{maxHeight: 200, maxWidth: 200}}/> :
+                                null
+                            }
+                            {message.type !== MessageType.IMAGE && message.type !== MessageType.FILE ?
+                                message.text : null
+                            }
                             <span>{sentTime}</span>
                         </div>
                     </div>
@@ -169,7 +194,6 @@ const MessageItem = ({currentUserId, message, isReadMessage, connection, showDat
                                       onClick={() => setShowForwardMessageModal(true)}><i className="ri-reply-line"></i></span>
                                 <Dropdown>
                                     <Dropdown.Toggle as={CustomToggle} id="dropdown-basic"/>
-
                                     <Dropdown.Menu>
                                         <Dropdown.Item
                                             onClick={() => pinOrUnpinMessage()}>{message.isPinned ? 'Gỡ ghim' : 'Ghim'}</Dropdown.Item>
@@ -185,7 +209,6 @@ const MessageItem = ({currentUserId, message, isReadMessage, connection, showDat
                         </div> : null
                     }
                 </div>
-                {isReadMessage ? <div className="mini-avatar"><img src="/assets/img/img7.jpg" alt=""/></div> : null}
             </div>
         </div>
     </React.Fragment>

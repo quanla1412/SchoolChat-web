@@ -26,9 +26,14 @@ class AppCalendar extends React.Component {
 
     render() {
         return <div class="calendar-body">
+            <div className="chat-body-header align-items-center" style={{height: 60, marginBottom: 20}}>
+                <span role="button" onClick={this.props.handleClose}><i
+                    className="ri-arrow-left-s-line fs-24"></i></span>
+                <h4 className="ms-2 mt-2">Xem lịch</h4>
+            </div>
             <FullCalendar
                 viewClassNames="calendar-body"
-                plugins={[ dayGridPlugin, timeGridPlugin ]}
+                plugins={[dayGridPlugin, timeGridPlugin]}
                 initialView="dayGridMonth"
                 headerToolbar={{
                     "left": "custom1 prev,next today",
@@ -41,6 +46,7 @@ class AppCalendar extends React.Component {
                     borderColor: '#0168fa',
                     events: this.state.events
                 }]}
+                dateClick={this.handleDateClick}
             />
         </div>
     }

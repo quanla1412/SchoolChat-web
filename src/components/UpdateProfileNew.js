@@ -21,8 +21,6 @@ class UpdateProfileNew extends React.Component {
             formData.append('phone', this.state.user.phone);
             formData.append('avatarFiles', this.state.user.avatar);
 
-            console.log(formData.get("id"))
-
             axios.post('http://localhost:5274/User/UpdateProfile', formData)
                 .then(response => {
                     toast.success("Cập nhật thông tin thành công");
@@ -36,10 +34,10 @@ class UpdateProfileNew extends React.Component {
         this.uploadAvatar = (e) => {
             const input = document.getElementById('upload-avatar-update-profile');
             const imagePreviewHTML = document.getElementById('avatar-update-profile');
-            const [file] = input.files
+            const [file] = input.files;
             if (file) {
-                imagePreviewHTML.src = URL.createObjectURL(file)
-                this.setState({user: {...this.state.user, avatar: file}})
+                imagePreviewHTML.src = URL.createObjectURL(file);
+                this.setState({user: {...this.state.user, avatar: file}});
             }
         }
     }

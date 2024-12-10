@@ -6,6 +6,8 @@ import {toast} from 'react-toastify';
 const SignUpPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [name, setName] = useState('');
+    const [studentNumber, setStudentNumber] = useState('');
     const navigate = useNavigate();
 
     const register = () => {
@@ -33,38 +35,25 @@ const SignUpPage = () => {
     return <body className="page-sign">
         <div className="card card-sign">
             <div className="card-header">
-                <a href="../" className="header-logo mb-4">ChatAllNight</a>
-                <h3 className="card-title">Sign Up</h3>
-                <p className="card-text">It's free to signup and only takes a minute.</p>
+                <a href="../" className="header-logo mb-4">SchoolChat</a>
+                <h3 className="card-title">Đăng ký</h3>
+                <p className="card-text">Đăng ký tài khoản để bắt đầu nhắn tin.</p>
             </div>
             <div className="card-body">
                 <div className="mb-3">
-                    <label className="form-label">Email address</label>
-                    <Form.Control onChange={e => setEmail(e.target.value)} value={email} placeholder="Enter your email address"/>
+                    <label className="form-label">Email</label>
+                    <Form.Control onChange={e => setEmail(e.target.value)} value={email}
+                                  placeholder="Nhập địa chỉ email"/>
                 </div>
                 <div className="mb-3">
-                    <label className="form-label">Password</label>
-                    <Form.Control type="password" onChange={e => setPassword(e.target.value)} value={password} placeholder="Enter your password"/>
+                    <label className="form-label">Mật khẩu</label>
+                    <Form.Control type="password" onChange={e => setPassword(e.target.value)} value={password}
+                                  placeholder="Nhập mật khẩu"/>
                 </div>
-                <div className="mb-4">
-                    <small>By clicking <strong>Create Account</strong> below, you agree to our terms of service and privacy
-                        statement.</small>
-                </div>
-                <Button variant="primary" type="submit" className="btn-sign" onClick={register}>Create Account</Button>
-
-                <div className="divider"><span>or sign up using</span></div>
-
-                <div className="row gx-2">
-                    <div className="col">
-                        <button className="btn btn-facebook"><i className="ri-facebook-fill"></i> Facebook</button>
-                    </div>
-                    <div className="col">
-                        <button className="btn btn-google"><i className="ri-google-fill"></i> Google</button>
-                    </div>
-                </div>
+                <Button variant="primary" type="submit" className="btn-sign" onClick={register}>Tạo tài khoản</Button>
             </div>
             <div className="card-footer">
-                Already have an account? <Link to="/login">Sign In</Link>
+                Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
             </div>
         </div>
     </body>

@@ -1,7 +1,7 @@
 import React from 'react';
 import {useNavigate} from 'react-router-dom';
 
-const SidebarFooter = ({user, toggleSidebarFooter, showCalendar, showUpdateProfile}) => {
+const SidebarFooter = ({user, toggleSidebarFooter, showCalendar, showUpdateProfile, showTask}) => {
     const navigate = useNavigate();
     const logOut = () => {
         localStorage.removeItem('token');
@@ -24,13 +24,11 @@ const SidebarFooter = ({user, toggleSidebarFooter, showCalendar, showUpdateProfi
         <div className="sidebar-footer-menu">
             <nav className="nav">
                 <span role="button" onClick={showUpdateProfile}><i className="ri-edit-2-line"></i> Cập nhật thông tin</span>
-                <a href=""><i className="ri-profile-line"></i> View Profile</a>
             </nav>
             <hr/>
             <nav className="nav">
                 <span role="button" onClick={showCalendar}><i className="ri-calendar-view"></i> Xem lịch</span>
-                <a href=""><i className="ri-lock-line"></i> Privacy Settings</a>
-                <a href=""><i className="ri-user-settings-line"></i> Account Settings</a>
+                <span role="button" onClick={showTask}><i className="ri-list-check-3"></i> Xem công việc</span>
                 <span role="button" onClick={logOut}><i className="ri-logout-box-r-line"></i> Đăng xuất</span>
             </nav>
         </div>
